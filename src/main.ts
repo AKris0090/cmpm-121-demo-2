@@ -1,46 +1,88 @@
 import "./style.css";
 
-const APP_NAME = "Sticker Sketchpad";
+const titleObject: HTMLHeadElement = document.createElement("h1");
+document.title = titleObject.textContent = "Sticker Sketchpad";
 const app = document.querySelector<HTMLDivElement>("#app")!;
-
-document.title = APP_NAME;
-
-const title: HTMLHeadElement = document.createElement("h1");
-title.textContent = APP_NAME;
-app.append(title);
 
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 canvas.width = canvas.height = 256;
+
+app.append(titleObject);
 app.append(canvas);
 
-const clearButton: HTMLButtonElement = document.createElement("button");
-clearButton.textContent = "Clear";
-app.append(clearButton);
+interface Point {
+    x: number;
+    y: number;
+}
+
+interface CursorObject {
+    isActive: boolean;
+    pos: Point;
+}
 
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
-const cursor = { isActive: false, x: 0, y: 0 };
+ctx.strokeStyle = "white";
+const cursor: CursorObject = { isActive: false, pos: {x: 0, y: 0} };
+
+const lines: Point[][] = [];
+
+function notify(name: string) {
+    canvas.dispatchEvent(new Event(name));
+}
+
+function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const line of lines) {
+      if (line.length > 1) {
+        ctx.beginPath();
+        const { x, y } = line[0];
+        ctx.moveTo(x, y);
+        for (const { x, y } of line) {
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+canvas.addEventListener("drawing-changed", redraw);
+
+let currentline: Point[] = [];
 
 canvas.addEventListener("mousedown", (e) => {
   cursor.isActive = true;
-  cursor.x = e.offsetX;
-  cursor.y = e.offsetY;
+  cursor.pos.x = e.offsetX;
+  cursor.pos.y = e.offsetY;
+
+  currentline = [];
+  lines.push(currentline);
+  currentline.push({ x: cursor.pos.x, y: cursor.pos.y });
+
+  notify("drawing-changed");
 });
 
 canvas.addEventListener("mousemove", (e) => {
   if (cursor.isActive) {
-    ctx.beginPath();
-    ctx.moveTo(cursor.x, cursor.y);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    cursor.x = e.offsetX;
-    cursor.y = e.offsetY;
+    cursor.pos.x = e.offsetX;
+    cursor.pos.y = e.offsetY;
+
+    currentline.push({ x: cursor.pos.x, y: cursor.pos.y });
   }
+  
+  notify("drawing-changed");
 });
 
 canvas.addEventListener("mouseup", () => {
   cursor.isActive = false;
+  currentline = [];
+
+  notify("drawing-changed");
 });
 
+const clearButton: HTMLButtonElement = document.createElement("button");
+clearButton.textContent = "Clear";
 clearButton.addEventListener("click", () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
+    lines.splice(0, lines.length);
+    notify("drawing-changed");
+  });
+app.append(clearButton);

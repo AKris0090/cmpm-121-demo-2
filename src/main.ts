@@ -7,9 +7,6 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 canvas.width = canvas.height = 256;
 
-app.append(titleObject);
-app.append(canvas);
-
 interface Point {
     x: number;
     y: number;
@@ -25,6 +22,7 @@ ctx.strokeStyle = "white";
 const cursor: CursorObject = { isActive: false, pos: {x: 0, y: 0} };
 
 const lines: Point[][] = [];
+const redoLines: Point[][] = [];
 
 function notify(name: string) {
     canvas.dispatchEvent(new Event(name));
@@ -68,7 +66,7 @@ canvas.addEventListener("mousemove", (e) => {
 
     currentline.push({ x: cursor.pos.x, y: cursor.pos.y });
   }
-  
+
   notify("drawing-changed");
 });
 
@@ -84,5 +82,24 @@ clearButton.textContent = "Clear";
 clearButton.addEventListener("click", () => {
     lines.splice(0, lines.length);
     notify("drawing-changed");
-  });
+});
+
+const undoButon: HTMLButtonElement = document.createElement("button");
+undoButon.textContent = "Undo";
+undoButon.addEventListener("click", () => {
+  redoLines.push(lines.pop() as Point[]);
+  notify("drawing-changed");
+});
+
+const redoButton: HTMLButtonElement = document.createElement("button");
+redoButton.textContent = "Redo";
+redoButton.addEventListener("click", () => {
+  lines.push(redoLines.pop() as Point[]);
+  notify("drawing-changed");
+});
+
+app.append(titleObject);
+app.append(canvas);
 app.append(clearButton);
+app.append(undoButon);
+app.append(redoButton);

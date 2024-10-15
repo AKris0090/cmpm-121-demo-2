@@ -25,14 +25,19 @@ interface CursorObject {
 
 interface markerLine {
     points: Point[];
+    thickness: number;
 
     display(ctx: CanvasRenderingContext2D): void;
     drag(nextPoint: Point): void;
 }
 
+let currentThickness: number = 1;
+
 function createMarkerLine(p: Point): markerLine {
     return {points: [p], 
-        display(ctx: CanvasRenderingContext2D) {          
+        thickness: currentThickness,
+        display(ctx: CanvasRenderingContext2D) {  
+            ctx.lineWidth = this.thickness;        
             ctx.beginPath();
             const { x, y } = this.points[0];
             ctx.moveTo(x, y);
@@ -87,6 +92,10 @@ canvas.addEventListener("mouseup", () => {
   notify("drawing-changed");
 });
 
+function setStroke(stroke: number) {
+  currentThickness = stroke;
+}
+
 const clearButton: HTMLButtonElement = document.createElement("button");
 clearButton.textContent = "Clear";
 clearButton.addEventListener("click", () => {
@@ -108,8 +117,31 @@ redoButton.addEventListener("click", () => {
   notify("drawing-changed");
 });
 
+const thickButton: HTMLButtonElement = document.createElement("button");
+thickButton.textContent = "Thick";
+thickButton.addEventListener("click", () => {
+  notify("stroke-thick");
+});
+
+const thinButton: HTMLButtonElement = document.createElement("button");
+thinButton.textContent = "Thin";
+thinButton.addEventListener("click", () => {
+  notify("stroke-thin");
+});
+thinButton.classList.add("buttonSelected");
+
+function toggleButtons() {
+  thinButton.classList.toggle("buttonSelected");
+  thickButton.classList.toggle("buttonSelected");
+}
+
+canvas.addEventListener("stroke-thick", () => {setStroke(5); toggleButtons()});
+canvas.addEventListener("stroke-thin", () => {setStroke(1); toggleButtons()});
+
 app.append(titleObject);
 app.append(canvas);
 app.append(clearButton);
 app.append(undoButon);
 app.append(redoButton);
+app.append(thickButton);
+app.append(thinButton);

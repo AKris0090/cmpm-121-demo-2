@@ -3,12 +3,18 @@ import "./style.css";
 const titleObject: HTMLHeadElement = document.createElement("h1");
 document.title = titleObject.textContent = "Sticker Sketchpad";
 const app = document.querySelector<HTMLDivElement>("#app")!;
-
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 canvas.width = canvas.height = 256;
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
 ctx.strokeStyle = "white";
-const cursor: CursorObject = { isActive: false, pos: {x: 0, y: 0} };
+const cursor: CursorObject = { isActive: false, 
+  needsDraw: false,
+  pos: {x: 0, y: 0},
+  display(ctx) {
+    ctx.beginPath();
+    ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
+    ctx.stroke();
+  }};
 function notify(name: string) {
     canvas.dispatchEvent(new Event(name));
 }
@@ -20,7 +26,10 @@ interface Point {
 
 interface CursorObject {
     isActive: boolean;
+    needsDraw: boolean;
     pos: Point;
+
+    display(ctx: CanvasRenderingContext2D): void;
 }
 
 interface markerLine {
@@ -58,11 +67,26 @@ const redoLines: markerLine[] = [];
 function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     lines.forEach((line) => {line.display(ctx);});
+
+    if(cursor.needsDraw) {
+      cursor.display(ctx);
+    }
 }
 
 canvas.addEventListener("drawing-changed", redraw);
+canvas.addEventListener("tool-moved", redraw);
 
 let currentline: markerLine = createMarkerLine({ x: 0, y: 0 });
+
+canvas.addEventListener("mouseout", () => {
+  cursor.needsDraw = false;
+  notify("tool-moved");
+});
+
+canvas.addEventListener("mouseenter", () => {
+  cursor.needsDraw = true;
+  notify("tool-moved");
+});
 
 canvas.addEventListener("mousedown", (e) => {
   cursor.isActive = true;
@@ -76,10 +100,10 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
+  notify("tool-moved");
+  cursor.pos.x = e.offsetX;
+  cursor.pos.y = e.offsetY;
   if (cursor.isActive) {
-    cursor.pos.x = e.offsetX;
-    cursor.pos.y = e.offsetY;
-
     currentline.drag({ x: cursor.pos.x, y: cursor.pos.y });
   }
 

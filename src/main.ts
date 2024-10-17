@@ -7,13 +7,12 @@ const canvas: HTMLCanvasElement = document.createElement("canvas");
 canvas.width = canvas.height = 256;
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
 ctx.strokeStyle = "white";
+let currentThickness: number = 1;
 const cursor: CursorObject = { isActive: false, 
   needsDraw: false,
   pos: {x: 0, y: 0},
   display(ctx) {
-    ctx.beginPath();
     ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
-    ctx.stroke();
   }};
 function notify(name: string) {
     canvas.dispatchEvent(new Event(name));
@@ -40,7 +39,17 @@ interface markerLine {
     drag(nextPoint: Point): void;
 }
 
-let currentThickness: number = 1;
+interface stickerObject {
+  sticker: string;
+  isPlaced: boolean;
+  stickerObj: markerLine;
+}
+
+const stickers: stickerObject[] = [
+  {sticker: "🏢", isPlaced: false, stickerObj: createSticker({x: -100, y: -100}, "🏢")},
+  {sticker: "🦖", isPlaced: false, stickerObj: createSticker({x: -100, y: -100}, "🦖")},
+  {sticker: "🔥", isPlaced: false, stickerObj: createSticker({x: -100, y: -100}, "🔥")}
+];
 
 function createMarkerLine(p: Point): markerLine {
     return {points: [p], 
@@ -61,6 +70,20 @@ function createMarkerLine(p: Point): markerLine {
     };
 }
 
+function createSticker(p: Point, sticker: string): markerLine {
+    return {points: [p], 
+        thickness: currentThickness,
+        display(ctx: CanvasRenderingContext2D) {  
+            ctx.font = "60px monospace";
+            ctx.fillText(sticker, this.points[0].x - 30, this.points[0].y + 30);
+        },
+        drag(nextPoint: Point) {
+          this.points.pop();
+          this.points.push(nextPoint);
+        }
+    };
+}
+
 const lines: markerLine[] = [];
 const redoLines: markerLine[] = [];
 
@@ -69,7 +92,9 @@ function redraw() {
     lines.forEach((line) => {line.display(ctx);});
 
     if(cursor.needsDraw) {
+      ctx.beginPath();
       cursor.display(ctx);
+      ctx.stroke();
     }
 }
 
@@ -77,6 +102,7 @@ canvas.addEventListener("drawing-changed", redraw);
 canvas.addEventListener("tool-moved", redraw);
 
 let currentline: markerLine = createMarkerLine({ x: 0, y: 0 });
+let currentSticker: stickerObject | null = null;
 
 canvas.addEventListener("mouseout", () => {
   cursor.needsDraw = false;
@@ -93,7 +119,13 @@ canvas.addEventListener("mousedown", (e) => {
   cursor.pos.x = e.offsetX;
   cursor.pos.y = e.offsetY;
 
-  currentline = createMarkerLine({ x: cursor.pos.x, y: cursor.pos.y });
+  if(currentSticker != null)  {
+      currentSticker.isPlaced = true;
+      currentline = currentSticker.stickerObj;
+      currentline.drag({x: cursor.pos.x, y: cursor.pos.y});
+  } else {
+    currentline = createMarkerLine({ x: cursor.pos.x, y: cursor.pos.y });
+  }
   lines.push(currentline);
 
   notify("drawing-changed");
@@ -104,7 +136,7 @@ canvas.addEventListener("mousemove", (e) => {
   cursor.pos.x = e.offsetX;
   cursor.pos.y = e.offsetY;
   if (cursor.isActive) {
-    currentline.drag({ x: cursor.pos.x, y: cursor.pos.y });
+      currentline.drag({ x: cursor.pos.x, y: cursor.pos.y });
   }
 
   notify("drawing-changed");
@@ -145,12 +177,20 @@ const thickButton: HTMLButtonElement = document.createElement("button");
 thickButton.textContent = "Thick";
 thickButton.addEventListener("click", () => {
   notify("stroke-thick");
+  currentSticker = null;
+  cursor.display = () => {
+    ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
+  };
 });
 
 const thinButton: HTMLButtonElement = document.createElement("button");
 thinButton.textContent = "Thin";
 thinButton.addEventListener("click", () => {
   notify("stroke-thin");
+  currentSticker = null;
+  cursor.display = () => {
+    ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
+  };
 });
 thinButton.classList.add("buttonSelected");
 
@@ -162,10 +202,45 @@ function toggleButtons() {
 canvas.addEventListener("stroke-thick", () => {setStroke(5); toggleButtons()});
 canvas.addEventListener("stroke-thin", () => {setStroke(1); toggleButtons()});
 
+const buildingButton: HTMLButtonElement = document.createElement("button");
+buildingButton.textContent = "🏢";
+buildingButton.addEventListener("click", () => {
+  cursor.display = () =>{ctx.font = "60px monospace";
+  ctx.fillText("🏢", cursor.pos.x - 30, cursor.pos.y + 30);};
+  currentSticker = stickers[0];
+  notify("tool-moved");
+});
+
+const dinoButton: HTMLButtonElement = document.createElement("button");
+dinoButton.textContent = "🦖";
+dinoButton.addEventListener("click", () => {
+  cursor.display = () =>{ctx.font = "60px monospace";
+  ctx.fillText("🦖", cursor.pos.x - 30, cursor.pos.y + 30);};
+  currentSticker = stickers[1];
+  notify("tool-moved");
+});
+
+const fireButton: HTMLButtonElement = document.createElement("button");
+fireButton.textContent = "🔥";
+fireButton.addEventListener("click", () => {
+  cursor.display = () =>{ctx.font = "60px monospace";
+  ctx.fillText("🔥", cursor.pos.x - 30, cursor.pos.y + 30);};
+  currentSticker = stickers[2];
+  notify("tool-moved");
+});
+
+const initialSpacer: HTMLDivElement = document.createElement("div");
+const secondSpacer: HTMLDivElement = document.createElement("div");
+
 app.append(titleObject);
 app.append(canvas);
-app.append(clearButton);
-app.append(undoButon);
-app.append(redoButton);
-app.append(thickButton);
-app.append(thinButton);
+app.append(initialSpacer);
+initialSpacer.append(clearButton);
+initialSpacer.append(undoButon);
+initialSpacer.append(redoButton);
+initialSpacer.append(thickButton);
+initialSpacer.append(thinButton);
+app.append(secondSpacer);
+secondSpacer.append(buildingButton);
+secondSpacer.append(dinoButton);
+secondSpacer.append(fireButton);

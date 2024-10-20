@@ -1,6 +1,7 @@
 import "./style.css";
 
 const CANVAS_SIZE = 256;
+const EXPORT_SIZE = 1024;
 const THIN_STROKE = 1;
 const THICK_STROKE = 5;
 const STROKE_COLOR = "white";
@@ -256,6 +257,25 @@ function toggleButtons() {
 
 canvas.addEventListener("stroke-thick", () => {setStroke(THICK_STROKE); toggleButtons()});
 canvas.addEventListener("stroke-thin", () => {setStroke(THIN_STROKE); toggleButtons()});
+
+function exportCanvas() {
+  const newCanvas: HTMLCanvasElement = document.createElement("canvas");
+  newCanvas.width = newCanvas.height = EXPORT_SIZE;
+  const newContext: CanvasRenderingContext2D = newCanvas.getContext("2d")!;
+  newContext.strokeStyle = STROKE_COLOR;
+  newContext.scale(4, 4);
+  lines.forEach((line) => {line.display(newContext);});
+
+  const link: HTMLAnchorElement = document.createElement("a");
+  link.href = newCanvas.toDataURL();
+  link.download = "sticker.png";
+  link.click();
+}
+
+const exportButton: HTMLButtonElement = document.createElement("button");
+exportButton.textContent = "Export Sticker";
+exportButton.addEventListener("click", exportCanvas);
+customSpacer.append(exportButton);
 
 app.append(titleObject);
 app.append(canvas);

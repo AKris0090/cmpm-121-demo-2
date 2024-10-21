@@ -13,6 +13,7 @@ const secondSpacer: HTMLDivElement = document.createElement("div");
 const customSpacer: HTMLDivElement = document.createElement("div");
 const sliderSpacer: HTMLDivElement = document.createElement("div");
 const sliderText: HTMLDivElement = document.createElement("div");
+const square: HTMLDivElement = document.createElement("div");
 const slider: HTMLInputElement = document.createElement("input");
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
@@ -26,14 +27,18 @@ slider.min = "0";
 slider.max = "360";
 slider.value = "360";
 slider.classList.add("slider");
+square.className = "square";
+square.style.backgroundColor = STROKE_COLOR;
 
 sliderSpacer.append(slider);
+sliderSpacer.append(square);
 
 slider.oninput = updateSliderText;
 
 function updateSliderText() {
-  sliderText.innerHTML = `Color: ${slider.value}`;
+  sliderText.innerHTML = `Color Value (Hue): ${slider.value}`;
   STROKE_COLOR = `hsl(${slider.value}, 100%, 50%)`;
+  square.style.backgroundColor = STROKE_COLOR;
 }
 
 interface Point {

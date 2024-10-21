@@ -81,6 +81,11 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.slider {
+  width: 75%;
+  height: 1.5em;
+}
+
 .buttonSelected {
   border-color: #646cff;
 }
@@ -104,4 +109,8 @@ canvas {
   border-width: thin;
   border-radius: 15px;
   box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
+}
+
+div {
+  margin-top: 5%;
 }

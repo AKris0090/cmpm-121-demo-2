@@ -2,15 +2,18 @@ import "./style.css";
 
 const CANVAS_SIZE = 256;
 const EXPORT_SIZE = 1024;
-const THIN_STROKE = 1;
+const THIN_STROKE = 2;
 const THICK_STROKE = 5;
-const STROKE_COLOR = "white";
+let STROKE_COLOR = 'hsl(360, 100%, 50%)';
 
 const titleObject: HTMLHeadElement = document.createElement("h1");
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 const initialSpacer: HTMLDivElement = document.createElement("div");
 const secondSpacer: HTMLDivElement = document.createElement("div");
 const customSpacer: HTMLDivElement = document.createElement("div");
+const sliderSpacer: HTMLDivElement = document.createElement("div");
+const sliderText: HTMLDivElement = document.createElement("div");
+const slider: HTMLInputElement = document.createElement("input");
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
 
@@ -18,6 +21,20 @@ document.title = titleObject.textContent = "Sticker Sketchpad";
 canvas.width = canvas.height = CANVAS_SIZE;
 ctx.strokeStyle = STROKE_COLOR;
 let currentThickness: number = THIN_STROKE;
+slider.type = "range";
+slider.min = "0";
+slider.max = "360";
+slider.value = "360";
+slider.classList.add("slider");
+
+sliderSpacer.append(slider);
+
+slider.oninput = updateSliderText;
+
+function updateSliderText() {
+  sliderText.innerHTML = `Color: ${slider.value}`;
+  STROKE_COLOR = `hsl(${slider.value}, 100%, 50%)`;
+}
 
 interface Point {
     x: number;
@@ -35,6 +52,7 @@ interface CursorObject {
 interface markerLine {
     points: Point[];
     thickness: number;
+    color: string;
 
     display(ctx: CanvasRenderingContext2D): void;
     drag(nextPoint: Point): void;
@@ -94,7 +112,9 @@ function cursorSticker(sticker: string) {
 function createMarkerLine(p: Point): markerLine {
     return {points: [p], 
         thickness: currentThickness,
+        color: STROKE_COLOR,
         display(ctx: CanvasRenderingContext2D) {  
+            ctx.strokeStyle = this.color;
             ctx.lineWidth = this.thickness;        
             ctx.beginPath();
             const { x, y } = this.points[0];
@@ -113,6 +133,7 @@ function createMarkerLine(p: Point): markerLine {
 function createSticker(p: Point, sticker: string): markerLine {
     return {points: [p], 
         thickness: currentThickness,
+        color: STROKE_COLOR,
         display(ctx: CanvasRenderingContext2D) {  
             ctx.font = "60px monospace";
             ctx.fillText(sticker, this.points[0].x - 30, this.points[0].y + 30);
@@ -282,3 +303,7 @@ app.append(canvas);
 app.append(initialSpacer);
 app.append(secondSpacer);
 app.append(customSpacer);
+app.append(sliderSpacer);
+
+app.append(sliderText);
+updateSliderText();

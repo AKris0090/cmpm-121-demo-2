@@ -43,6 +43,7 @@ function updateSliderText() {
   sliderText.innerHTML = `Color Value (Hue): ${slider.value}`;
   STROKE_COLOR = `hsl(${slider.value}, 100%, 50%)`;
   square.style.backgroundColor = STROKE_COLOR;
+  ctx.strokeStyle = STROKE_COLOR;
 }
 
 // INTERFACES
@@ -88,7 +89,7 @@ const cursor: CursorObject = {
   needsDraw: false,
   pos: { x: 0, y: 0 },
   display(ctx) {
-    ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
+    ctx.rect(cursor.pos.x, cursor.pos.y, currentThickness/100, currentThickness/100);
   },
 };
 
@@ -258,7 +259,8 @@ const thickButton = createButton("Thick", () => {
   notify("stroke-thick");
   currentSticker = null;
   cursor.display = () => {
-    ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
+    ctx.lineWidth = currentThickness;
+    ctx.rect(cursor.pos.x, cursor.pos.y, currentThickness/100, currentThickness/100);
   };
 });
 
@@ -268,7 +270,8 @@ const thinButton = createButton(
     notify("stroke-thin");
     currentSticker = null;
     cursor.display = () => {
-      ctx.arc(cursor.pos.x, cursor.pos.y, currentThickness, 0, 2 * Math.PI);
+      ctx.lineWidth = currentThickness;
+      ctx.rect(cursor.pos.x, cursor.pos.y, currentThickness/100, currentThickness/100);
     };
   },
   true

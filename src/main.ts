@@ -1,10 +1,6 @@
 import "./style.css";
 
-const CANVAS_SIZE = 256;
-const EXPORT_SIZE = 1024;
-const THIN_STROKE = 2;
-const THICK_STROKE = 5;
-let STROKE_COLOR = "hsl(360, 100%, 50%)";
+// HTML CONSTANTS
 
 const titleObject: HTMLHeadElement = document.createElement("h1");
 const canvas: HTMLCanvasElement = document.createElement("canvas");
@@ -14,6 +10,14 @@ const customSpacer: HTMLDivElement = document.createElement("div");
 const slider: HTMLInputElement = document.createElement("input");
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+
+// CANVAS CONSTANTS
+
+const CANVAS_SIZE = 256;
+const EXPORT_SIZE = 1024;
+const THIN_STROKE = 2;
+const THICK_STROKE = 5;
+let STROKE_COLOR = "hsl(360, 100%, 50%)";
 
 document.title = titleObject.textContent = "Sticker Sketchpad";
 canvas.width = canvas.height = CANVAS_SIZE;
@@ -97,6 +101,8 @@ function notify(name: string) {
   canvas.dispatchEvent(new Event(name));
 }
 
+// STICKERS 
+
 const stickerKeys = ["🏢", "🦖", "🔥"];
 
 const stickers: stickerObject[] = [];
@@ -176,6 +182,8 @@ function redraw() {
     ctx.stroke();
   }
 }
+
+// CANVAS BEHAVIOR
 
 canvas.addEventListener("drawing-changed", redraw);
 
@@ -336,7 +344,7 @@ const exportButton: HTMLButtonElement = createButton(
   false
 );
 
-// APPEND ELEMENTS
+// APPEND ELEMENTS TO HTML
 
 app.append(
   titleObject,

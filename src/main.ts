@@ -4,9 +4,9 @@ import "./style.css";
 
 const titleObject: HTMLHeadElement = document.createElement("h1");
 const canvas: HTMLCanvasElement = document.createElement("canvas");
-const initialSpacer: HTMLDivElement = document.createElement("div");
-const secondSpacer: HTMLDivElement = document.createElement("div");
-const customSpacer: HTMLDivElement = document.createElement("div");
+const toolbarSpacer: HTMLDivElement = document.createElement("div");
+const stickerSpacer: HTMLDivElement = document.createElement("div");
+const optionsSpacer: HTMLDivElement = document.createElement("div");
 const slider: HTMLInputElement = document.createElement("input");
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
@@ -124,7 +124,7 @@ function addSticker(sticker: string) {
     notify("tool-moved");
   });
   stickers.push(currentStickerObject);
-  secondSpacer.append(currentStickerObject.button);
+  stickerSpacer.append(currentStickerObject.button);
 }
 
 function cursorSticker(sticker: string) {
@@ -236,6 +236,7 @@ function setStroke(stroke: number) {
 }
 
 // BUTTON CREATION HELPER FUNCTION (CREDITS TO BRACE)
+
 function createButton(
   text: string,
   onClick: () => void,
@@ -248,21 +249,27 @@ function createButton(
   return button;
 }
 
-const clearButton = createButton("Clear", () => {
+// TOOLBAR BUTTON SETUP
+
+// clear button
+toolbarSpacer.append(createButton("Clear", () => {
   lines.splice(0, lines.length);
   notify("drawing-changed");
-});
+}));
 
-const undoButton = createButton("Undo", () => {
+// undo button
+toolbarSpacer.append(createButton("Undo", () => {
   lines.length > 0 ? redoLines.push(lines.pop() as markerLine) : null;
   notify("drawing-changed");
-});
+}));
 
-const redoButton = createButton("Redo", () => {
+// redo button
+toolbarSpacer.append(createButton("Redo", () => {
   redoLines.length > 0 ? lines.push(redoLines.pop() as markerLine) : null;
   notify("drawing-changed");
-});
+}));
 
+// thick brush button
 const thickButton = createButton("Thick", () => {
   notify("stroke-thick");
   currentSticker = null;
@@ -271,7 +278,9 @@ const thickButton = createButton("Thick", () => {
     ctx.rect(cursor.pos.x, cursor.pos.y, currentThickness/100, currentThickness/100);
   };
 });
+toolbarSpacer.append(thickButton);
 
+// thin brush button
 const thinButton = createButton(
   "Thin",
   () => {
@@ -284,6 +293,7 @@ const thinButton = createButton(
   },
   true
 );
+toolbarSpacer.append(thinButton);
 
 // CUSTOM STICKER BUTTON SETUP
 
@@ -300,11 +310,11 @@ function addCustomSticker() {
   addSticker(key);
 }
 
-const customButton: HTMLButtonElement = createButton(
+optionsSpacer.append(createButton(
   "Custom Sticker",
   addCustomSticker,
   false
-);
+));
 
 function toggleButtons() {
   thinButton.classList.toggle("buttonSelected");
@@ -338,29 +348,21 @@ function exportCanvas() {
   link.click();
 }
 
-const exportButton: HTMLButtonElement = createButton(
+optionsSpacer.append(createButton(
   "Export",
   exportCanvas,
   false
-);
+));
 
 // APPEND ELEMENTS TO HTML
 
 app.append(
   titleObject,
   canvas,
-  initialSpacer,
-  secondSpacer,
-  customSpacer,
+  toolbarSpacer,
+  stickerSpacer,
+  optionsSpacer,
   sliderSpacer
-);
-customSpacer.append(customButton, exportButton);
-initialSpacer.append(
-  clearButton,
-  undoButton,
-  redoButton,
-  thickButton,
-  thinButton
 );
 app.append(sliderText);
 updateSliderText();
